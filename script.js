@@ -1,0 +1,18 @@
+const products=[
+{id:"sourdough",name:"Country Sourdough",category:"bread",price:"$7",description:"Crusty loaf with a soft, tangy center."},
+{id:"brioche",name:"Brioche Loaf",category:"bread",price:"$8",description:"Soft, rich bread with a lightly sweet finish."},
+{id:"croissant",name:"Butter Croissant",category:"pastry",price:"$4",description:"Flaky layers with a buttery center."},
+{id:"danish",name:"Berry Danish",category:"pastry",price:"$5",description:"Seasonal berry filling and crisp pastry."},
+{id:"chocolate-cake",name:"Chocolate Celebration Cake",category:"cake",price:"$32",description:"Chocolate cake with smooth chocolate frosting."},
+{id:"vanilla-cake",name:"Vanilla Celebration Cake",category:"cake",price:"$30",description:"Classic vanilla cake with vanilla buttercream."}];
+const categoryLabels={all:"All",bread:"Bread",pastry:"Pastries",cake:"Cakes"};
+let favorites=JSON.parse(localStorage.getItem("northStarFavorites")||"[]");
+function saveFavorites(){localStorage.setItem("northStarFavorites",JSON.stringify(favorites));updateFavoriteCount();}
+function updateFavoriteCount(){const el=document.querySelector("#favoriteCount");if(el)el.textContent=favorites.length;}
+function toggleFavorite(id){favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];saveFavorites();renderProducts(document.querySelector(".filter.active")?.dataset.category||"all");}
+function renderProducts(category="all"){const grid=document.querySelector("#productGrid");if(!grid)return;const visible=category==="all"?products:products.filter(p=>p.category===category);grid.innerHTML=visible.map(p=>`<article class="card"><h3>${p.name}</h3><p>${p.description}</p><p class="price">${p.price}</p><button class="favorite ${favorites.includes(p.id)?"saved":""}" data-id="${p.id}">${favorites.includes(p.id)?"★ Saved favorite":"☆ Save favorite"}</button></article>`).join("");grid.querySelectorAll(".favorite").forEach(b=>b.addEventListener("click",()=>toggleFavorite(b.dataset.id)));}
+function setupFilters(){document.querySelectorAll(".filter").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".filter").forEach(b=>b.classList.remove("active"));btn.classList.add("active");renderProducts(btn.dataset.category);}));}
+function setError(id,msg){const el=document.querySelector("#"+id+"Error");if(el)el.textContent=msg;}
+function validateContactForm(){const name=document.querySelector("#name").value.trim(),email=document.querySelector("#email").value.trim(),message=document.querySelector("#message").value.trim();let valid=true;["name","email","message"].forEach(id=>setError(id,""));if(name.length<2){setError("name","Please enter at least 2 characters for your name.");valid=false;}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){setError("email","Please enter a valid email address.");valid=false;}if(message.length<10){setError("message","Please enter a message with at least 10 characters.");valid=false;}return valid;}
+function setupContactForm(){const form=document.querySelector("#contactForm");if(!form)return;const savedEmail=localStorage.getItem("northStarEmail");if(savedEmail)document.querySelector("#email").value=savedEmail;form.addEventListener("submit",e=>{e.preventDefault();document.querySelector("#formStatus").textContent="";if(!validateContactForm())return;localStorage.setItem("northStarEmail",document.querySelector("#email").value.trim());document.querySelector("#formStatus").textContent="Thanks! Your message is ready to send.";});}
+document.addEventListener("DOMContentLoaded",()=>{renderProducts();setupFilters();updateFavoriteCount();setupContactForm();});
